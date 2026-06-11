@@ -1,14 +1,23 @@
-import mongoose from 'mongoose';
+import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
 
-const connectDB = async () => {
+dotenv.config();
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    logging: false, // Keeps your terminal clean
+});
+
+export const connectDB = async () => {
     try {
-        // Reads the hidden DATABASE_URL we added to your .env file
-        const conn = await mongoose.connect(process.env.DATABASE_URL);
-        console.log(`📡 MongoDB Connected Safely: ${conn.connection.host}`);
+        await sequelize.authenticate();
+        console.log('✅ PostgreSQL Connected Safely to Local Machine');
+        // This automatically syncs your models/tables to the database
+        await sequelize.sync({ alter: true });
     } catch (error) {
-        console.error(`❌ Database Connection Error: ${error.message}`);
-        process.exit(1); // Shuts down the application if the database connection fails
+        console.error('❌ Database Connection Error:', error.message);
+        process.exit(1);
     }
 };
 
-export default connectDB;
+export default sequelize;

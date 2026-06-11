@@ -1,54 +1,31 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
 
-const internSchema = new mongoose.Schema({
+const Intern = sequelize.define('Intern', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
     fullName: {
-        type: String,
-        required: [true, "Full name is required"],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false,
     },
     email: {
-        type: String,
-        required: [true, "Email address is required"],
-        unique: true, // 🛑 Prevents the same student from applying twice!
-        trim: true,
-        lowercase: true
-    },
-    phone: {
-        type: String,
-        required: [true, "Phone number is required"],
-        trim: true
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: { isEmail: true },
     },
     university: {
-        type: String,
-        required: [true, "University selection is required"]
-    },
-    otherUniversity: {
-        type: String,
-        default: ''
-    },
-    yearOfStudy: {
-        type: String,
-        required: [true, "Year of study is required"]
+        type: DataTypes.STRING,
+        allowNull: false,
     },
     gpa: {
-        type: Number,
-        required: [true, "GPA is required"],
-        min: 2.0,
-        max: 4.0
-    },
-    githubProfile: {
-        type: String,
-        trim: true,
-        default: ''
-    },
-    skills: {
-        type: String,
-        trim: true,
-        default: ''
+        type: DataTypes.FLOAT,
+        allowNull: false,
     }
 }, {
-    timestamps: true // Automatically injects "createdAt" and "updatedAt" timestamps for you!
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
 });
 
-const Intern = mongoose.model('Intern', internSchema);
 export default Intern;

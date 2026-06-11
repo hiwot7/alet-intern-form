@@ -45,7 +45,7 @@ export default function InternRegistrationForm() {
         };
 
         try {
-            const response = await fetch('http://localhost:5000/api/interns/register', {
+            const response = await fetch('http://localhost:5001/api/interns/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

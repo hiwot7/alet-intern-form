@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import connectDB from './config/db.js'; // Import database connection
+import { connectDB } from './config/db.js'; // Import database connection
 import Intern from './models/Intern.js'; // Import our data schema blueprint
 
 // Load environment variables
@@ -12,7 +12,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Essential Middleware Configuration 
 app.use(cors());
