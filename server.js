@@ -1,47 +1,86 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js'; // Import database connection
+import Intern from './models/Intern.js'; // Import our data schema blueprint
+
+// Load environment variables
+dotenv.config();
+
+// Connect to the Live Database Cluster
+connectDB();
 
 const app = express();
-const PORT = 5000; // The backend will run on port 5000 (React runs on 5173)
+const PORT = process.env.PORT || 5000;
 
-// Middleware Configurations
-app.use(cors()); // Allows your React frontend to connect
-app.use(bodyParser.json()); // Parses incoming application form submissions into readable JavaScript
+// Essential Middleware Configuration 
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Temporary in-memory local data storage array (Acts as a simple mock database for now)
-let applications = [];
+// 1. POST Endpoint: Saves new student applications asynchronously to MongoDB
+app.post('/api/interns/register', async (req, res) => {
+    try {
+        const { fullName, email, phone, university, otherUniversity, yearOfStudy, gpa, githubProfile, skills } = req.body;
 
-// 1. POST Endpoint: Captures and saves new student applications
-app.post('/api/interns/register', (req, res) => {
-    const newApplication = req.body;
+        // Check if the applicant email already exists in the collection
+        const existingApplicant = await Intern.findOne({ email });
+        if (existingApplicant) {
+            return res.status(400).json({
+                success: false,
+                message: "An application with this email address has already been submitted."
+            });
+        }
 
-    // Basic Server Validation Check
-    if (!newApplication.fullName || !newApplication.email) {
-        return res.status(400).json({ success: false, message: "Full Name and Email are strictly required." });
+        // Create a new instance of the model document
+        const newApplication = new Intern({
+            fullName,
+            email,
+            phone,
+            university,
+            otherUniversity,
+            yearOfStudy,
+            gpa,
+            githubProfile,
+            skills
+        });
+
+        // Save asynchronously straight into the database cluster
+        await newApplication.save();
+
+        console.log("🚀 New Application Saved to Database Successfully!");
+
+        res.status(201).json({
+            success: true,
+            message: "Application securely received and saved to Alet database!"
+        });
+
+    } catch (error) {
+        console.error("❌ Error registering intern:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error saving data." });
     }
-
-    // Push the data package into our local temporary storage array
-    applications.push(newApplication);
-
-    console.log("🚀 New Application Received Successfully!");
-    console.log("Student Profile Data:", newApplication);
-
-    // Send back a success confirmation to the React frontend
-    res.status(201).json({
-        success: true,
-        message: "Application securely received by Alet Backend!"
-    });
 });
 
-// 2. GET Endpoint: Allows you to view all compiled applications
-app.get('/api/interns', (req, res) => {
-    res.status(200).json(applications);
+// 2. GET Endpoint: Fetches all records out of the live collection
+app.get('/api/interns', async (req, res) => {
+    try {
+        // Queries MongoDB for all interns, sorted by the newest submission first
+        const allApplicants = await Intern.find({}).sort({ createdAt: -1 });
+        res.json(allApplicants);
+    } catch (error) {
+        console.error("❌ Error fetching applications:", error);
+        res.status(500).json({ message: "Error fetching data from database." });
+    }
 });
 
-// Start listening for incoming connections
+// 3. Root Endpoint fallback
+app.get('/', (req, res) => {
+    res.send("Alet Technology API Server is active. Please navigate to /api/interns to view submissions.");
+});
+
+// Start the Express Engine
 app.listen(PORT, () => {
-    console.log(`===================================================`);
     console.log(`✅ Alet Technology Backend is running on: http://localhost:${PORT}`);
-    console.log(`===================================================`);
 });

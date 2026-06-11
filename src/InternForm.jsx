@@ -28,26 +28,48 @@ export default function InternRegistrationForm() {
 
     const [submitted, setSubmitted] = useState(false);
     const [focusedField, setFocusedField] = useState('');
+    const [isHovered, setIsHovered] = useState(false); // Clean hover management
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('React Form Data Submitted Successfully:', formData);
-        setSubmitted(true);
+
+        // Convert GPA to a proper decimal number profile payload right before transmitting
+        const payload = {
+            ...formData,
+            gpa: formData.gpa ? parseFloat(formData.gpa) : null
+        };
+
+        try {
+            const response = await fetch('http://localhost:5000/api/interns/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                setSubmitted(true); // Switches to the success screen
+            } else {
+                console.error('Server responded with an error status');
+            }
+        } catch (error) {
+            console.error('Network error connecting to the backend:', error);
+        }
     };
 
     // Coordinated Classic Theme Variables
-    const BRAND_COLOR = '#1e4620';       // Premium Deep Forest Green from your logo
+    const BRAND_COLOR = '#1e4620';       // Premium Deep Forest Green
     const BRAND_HOVER = '#132e14';       // Darker accent tone for button hover
     const BRAND_GLOW = 'rgba(30, 70, 32, 0.12)'; // Subtle ring aura on active inputs
-    const TEXT_MUTED = '#64748b';        // Premium slate gray for readable descriptions
+    const TEXT_MUTED = '#64748b';        // Premium slate gray
 
     const styles = {
-        // Webpage Wrapper to stretch across the entire screen and kill the "raw widget" look
         pageWrapper: {
             minHeight: '100vh',
             width: '100%',
@@ -62,7 +84,7 @@ export default function InternRegistrationForm() {
         container: {
             width: '100%',
             maxWidth: '680px',
-            padding: '50px 45px', // Extra breathing room inside the container
+            padding: '50px 45px',
             backgroundColor: '#ffffff',
             borderRadius: '16px',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0,0,0,0.01)',
@@ -75,16 +97,16 @@ export default function InternRegistrationForm() {
             marginBottom: '40px',
         },
         logo: {
-            height: '42px', // Ultra-sleek corporate logo sizing
+            height: '42px',
             width: 'auto',
             marginBottom: '20px',
             objectFit: 'contain',
         },
         subTitle: {
-            fontSize: '20px', // More prominent, lively text
+            fontSize: '20px',
             color: BRAND_COLOR,
             fontWeight: '700',
-            letterSpacing: '-0.025em', // Premium modern tight font kerning
+            letterSpacing: '-0.025em',
             margin: '0 0 10px 0',
         },
         description: {
@@ -94,18 +116,18 @@ export default function InternRegistrationForm() {
             margin: '0',
         },
         formGroup: {
-            marginBottom: '28px', // Enhanced breathing space between fields
+            marginBottom: '28px',
             textAlign: 'left',
         },
         rowContainer: {
             display: 'flex',
-            gap: '24px', // Standardized spatial separation
+            gap: '24px',
             marginBottom: '28px',
             flexWrap: 'wrap',
             width: '100%',
         },
         rowField: {
-            flex: '1 1 calc(50% - 12px)', // Forces true mathematical grid alignment
+            flex: '1 1 calc(50% - 12px)',
             minWidth: '260px',
             boxSizing: 'border-box',
         },
@@ -113,9 +135,9 @@ export default function InternRegistrationForm() {
             display: 'block',
             fontSize: '13px',
             fontWeight: '600',
-            color: '#334155', // Charcoal slate for premium readability
+            color: '#334155',
             marginBottom: '8px',
-            letterSpacing: '0.025em', // Breathes life into uppercase/bold metadata labels
+            letterSpacing: '0.025em',
             textTransform: 'uppercase',
         },
         input: (fieldName) => ({
@@ -133,7 +155,7 @@ export default function InternRegistrationForm() {
         }),
         button: {
             width: '100%',
-            backgroundColor: BRAND_COLOR,
+            backgroundColor: isHovered ? BRAND_HOVER : BRAND_COLOR, // Managed state cleanly
             color: '#ffffff',
             fontSize: '15px',
             fontWeight: '600',
@@ -167,7 +189,7 @@ export default function InternRegistrationForm() {
                     <img src={companyLogo} alt="Alet Logo" style={{ height: '38px', marginBottom: '24px', objectFit: 'contain' }} />
                     <h2 style={{ color: BRAND_COLOR, margin: '0 0 12px 0', fontSize: '24px', fontWeight: '700' }}>Application Received</h2>
                     <p style={{ color: TEXT_MUTED, fontSize: '15px', lineHeight: '1.6', margin: 0 }}>
-                        Your application has been successfully submitted to <strong>Alet Technology PLC</strong>. Our engineering team will review your profile and reach out shortly.
+                        Your application has been successfully submitted to <strong>Alet Technology PLC</strong>. Our team will review your profile and reach out shortly.
                     </p>
                 </div>
             </div>
@@ -342,8 +364,8 @@ export default function InternRegistrationForm() {
                     <button
                         type="submit"
                         style={styles.button}
-                        onMouseOver={(e) => e.target.style.backgroundColor = BRAND_HOVER}
-                        onMouseOut={(e) => e.target.style.backgroundColor = BRAND_COLOR}
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}
                     >
                         Submit Application
                     </button>
